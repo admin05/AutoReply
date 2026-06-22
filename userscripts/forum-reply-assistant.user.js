@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Forum Reply Assistant
 // @namespace    https://github.com/admin05/AutoReply
-// @version      1.0.1
+// @version      1.0.2
 // @description  Press Cmd+R/Ctrl+R to extract the current forum topic and draft a reply into the focused editor.
 // @author       Codex
 // @match        *://*/*
@@ -16,7 +16,6 @@
 
   const SHORTCUT_KEY = 'r';
   const MAX_SOURCE_CHARS = 8000;
-  const MAX_POINTS = 3;
 
   const FORUM_SELECTORS = [
     'article',
@@ -86,74 +85,20 @@
     return normalizeText(best.innerText || best.textContent || '').slice(0, MAX_SOURCE_CHARS);
   }
 
-  function getSentences(text) {
-    return normalizeText(text)
-      .replace(/([。！？!?；;])/g, '$1\n')
-      .split(/\n+/)
-      .map((line) => normalizeText(line))
-      .filter((line) => line.length >= 12 && line.length <= 180)
-      .filter((line) => !/^(回复|引用|登录|注册|收藏|举报|分享|发表于|只看该作者)/.test(line));
-  }
-
-  function extractKeywords(text) {
-    const stopWords = new Set([
-      '这个', '一个', '我们', '你们', '他们', '可以', '没有', '不是', '还是', '但是', '因为',
-      '所以', '如果', '然后', '已经', '现在', '自己', '感觉', '问题', '内容', '主题', '论坛',
-      '回复', '楼主', '大家', '一下', '什么', '怎么', '这些', '那些', '以及', '或者', '比较',
-    ]);
-
-    const words = normalizeText(text)
-      .match(/[\u4e00-\u9fa5]{2,6}|[A-Za-z][A-Za-z0-9_-]{2,}/g) || [];
-
-    const counts = new Map();
-    for (const word of words) {
-      const normalized = word.toLowerCase();
-      if (stopWords.has(normalized) || /^\d+$/.test(normalized)) continue;
-      counts.set(normalized, (counts.get(normalized) || 0) + 1);
-    }
-
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || b[0].length - a[0].length)
-      .slice(0, 6)
-      .map(([word]) => word);
-  }
-
-  function pickPoints(sentences, keywords) {
-    const selected = [];
-    const seen = new Set();
-
-    for (const sentence of sentences) {
-      const hitCount = keywords.filter((keyword) => sentence.toLowerCase().includes(keyword)).length;
-      const score = hitCount * 10 + Math.min(sentence.length, 80) / 20;
-      if (score < 2.5) continue;
-
-      const key = sentence.slice(0, 24);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      selected.push({ sentence, score });
-    }
-
-    return selected
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX_POINTS)
-      .map((item) => item.sentence.replace(/[，,。.!！?？;；]+$/, ''));
-  }
-
   function buildReply({ title, content }) {
-    const sentences = getSentences(content);
-    const keywords = extractKeywords(`${title}\n${content}`);
-    const points = pickPoints(sentences, keywords);
-    const topic = keywords.slice(0, 3).join('、') || title;
+    const source = `${title}\n${content}`;
+    const congratulationsWords = ['恭喜', '中奖', '上岸', '通过', '录取', '成功', '喜提', '拿下', '达成'];
+    const thanksWords = ['教程', '经验', '分享', '整理', '攻略', '方法', '总结', '资料', '测评'];
 
-    const pointText = points.length
-      ? `我比较关注这几处：${points.map((point) => `「${point}」`).join('；')}。`
-      : '我大致看完后，感觉这个主题可以从背景、实际影响和后续处理几个角度继续讨论。';
+    if (congratulationsWords.some((word) => source.includes(word))) {
+      return '恭喜恭喜，真不错！';
+    }
 
-    return [
-      `看完楼主关于「${title}」的内容，我的理解是核心在于 ${topic}。`,
-      pointText,
-      '如果按实际使用/执行的角度看，我倾向于先把关键条件和边界说清楚，再看有没有可复现的例子或数据支撑。这样讨论会更容易收敛，也方便后面的人补充经验。',
-    ].join('\n\n');
+    if (thanksWords.some((word) => source.includes(word))) {
+      return '感谢分享，整理得很有用！';
+    }
+
+    return '写得不错，支持一下！';
   }
 
   function getActiveEditor() {
