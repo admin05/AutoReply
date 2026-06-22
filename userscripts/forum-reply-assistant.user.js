@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Forum Reply Assistant
-// @namespace    https://github.com/cen/AutoReply
-// @version      1.0.0
+// @namespace    https://github.com/admin05/AutoReply
+// @version      1.0.1
 // @description  Press Cmd+R/Ctrl+R to extract the current forum topic and draft a reply into the focused editor.
 // @author       Codex
 // @match        *://*/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/admin05/AutoReply/main/userscripts/forum-reply-assistant.user.js
+// @downloadURL  https://raw.githubusercontent.com/admin05/AutoReply/main/userscripts/forum-reply-assistant.user.js
 // ==/UserScript==
 
 (function () {
