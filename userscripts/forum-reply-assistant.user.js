@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Forum Reply Assistant
 // @namespace    https://github.com/admin05/AutoReply
-// @version      1.0.2
+// @version      1.0.3
 // @description  Press Cmd+R/Ctrl+R to extract the current forum topic and draft a reply into the focused editor.
 // @author       Codex
 // @match        *://*/*
@@ -91,14 +91,16 @@
     const thanksWords = ['教程', '经验', '分享', '整理', '攻略', '方法', '总结', '资料', '测评'];
 
     if (congratulationsWords.some((word) => source.includes(word))) {
-      return '恭喜恭喜，真不错！';
+      return '恭喜恭喜，真的很不错，祝后面越来越顺利！';
     }
 
     if (thanksWords.some((word) => source.includes(word))) {
-      return '感谢分享，整理得很有用！';
+      return '感谢分享，内容整理得很用心，对大家都很有帮助！';
     }
 
-    return '写得不错，支持一下！';
+    const names = ['楼主', '佬友', '老板'];
+    const name = names[Math.floor(Math.random() * names.length)];
+    return `${name}写得挺不错的，内容很有意思，支持一下！`;
   }
 
   function getActiveEditor() {
