@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Forum Reply Assistant
 // @namespace    https://github.com/admin05/AutoReply
-// @version      1.0.3
+// @version      1.0.4
 // @description  Press Cmd+R/Ctrl+R to extract the current forum topic and draft a reply into the focused editor.
 // @author       Codex
 // @match        *://*/*
@@ -85,22 +85,67 @@
     return normalizeText(best.innerText || best.textContent || '').slice(0, MAX_SOURCE_CHARS);
   }
 
+  function includesAny(text, words) {
+    return words.some((word) => text.includes(word));
+  }
+
+  function pickRandom(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+
   function buildReply({ title, content }) {
     const source = `${title}\n${content}`;
-    const congratulationsWords = ['恭喜', '中奖', '上岸', '通过', '录取', '成功', '喜提', '拿下', '达成'];
-    const thanksWords = ['教程', '经验', '分享', '整理', '攻略', '方法', '总结', '资料', '测评'];
+    const congratulationsWords = ['恭喜', '中奖', '上岸', '通过', '录取', '成功', '喜提', '拿下', '达成', '毕业', '升职'];
+    const thanksWords = ['教程', '经验', '分享', '整理', '攻略', '方法', '总结', '资料', '测评', '推荐', '避坑'];
+    const questionWords = ['请问', '求助', '怎么', '如何', '有没有', '吗', '问题', '疑问', '讨论'];
+    const updateWords = ['更新', '进展', '记录', '打卡', '复盘', '后续', '阶段'];
 
-    if (congratulationsWords.some((word) => source.includes(word))) {
-      return '恭喜恭喜，真的很不错，祝后面越来越顺利！';
+    if (includesAny(source, congratulationsWords)) {
+      return pickRandom([
+        '恭喜楼主，真的替你开心，这一路不容易，后面一定越来越顺！',
+        '太棒了老板，这个结果值得庆祝，祝你接下来继续顺顺利利！',
+        '恭喜恭喜，这波真的很稳，看到这种好消息也跟着开心！',
+        '佬友太强了，努力终于有回报，祝后面还有更多好消息！',
+      ]);
     }
 
-    if (thanksWords.some((word) => source.includes(word))) {
-      return '感谢分享，内容整理得很用心，对大家都很有帮助！';
+    if (includesAny(source, thanksWords)) {
+      return pickRandom([
+        '感谢楼主分享，内容整理得很细，对后面查资料的人很有帮助！',
+        '佬友这波分享很实在，信息量很足，先收藏慢慢学习一下！',
+        '感谢整理，这种经验帖很有参考价值，能省下不少摸索时间！',
+        '老板分享得很用心，重点也说得清楚，路过先支持一下！',
+      ]);
     }
 
-    const names = ['楼主', '佬友', '老板'];
-    const name = names[Math.floor(Math.random() * names.length)];
-    return `${name}写得挺不错的，内容很有意思，支持一下！`;
+    if (includesAny(source, questionWords)) {
+      return pickRandom([
+        '楼主这个问题问得挺关键，蹲一个后续讨论，也想看看大家的经验。',
+        '这个点确实值得聊聊，佬友提出来很有参考价值，期待更多补充。',
+        '同关注这个问题，感觉不少人都会遇到，看看评论区有没有好办法。',
+        '老板这个问题挺实际的，先帮顶一下，希望有懂的朋友来补充。',
+      ]);
+    }
+
+    if (includesAny(source, updateWords)) {
+      return pickRandom([
+        '这个进展挺不错的，楼主持续更新很用心，期待后面更多好消息！',
+        '记录得很清楚，看得出来一直在认真推进，后续可以继续蹲一蹲。',
+        '佬友这个更新挺有参考意义，节奏也很稳，继续关注后面的变化。',
+        '老板这波复盘很实在，过程写出来对后来的人也挺有帮助。',
+      ]);
+    }
+
+    return pickRandom([
+      '楼主写得挺自然的，内容看着很舒服，顺手支持一下！',
+      '佬友这个帖子挺有意思，表达也很真诚，支持一下继续交流！',
+      '老板这个内容看着很舒服，氛围也不错，来支持一波！',
+      '这个角度还挺有意思的，楼主说得也比较清楚，支持继续分享。',
+      '帖子整体看下来挺顺的，内容也有点意思，路过支持一下！',
+      '楼主这个表达挺接地气的，看着不累，评论区也可以继续聊聊。',
+      '佬友说得挺真诚的，内容有共鸣，顺手点个支持不过分。',
+      '老板这帖挺有生活气的，看完感觉还不错，支持一下继续发。',
+    ]);
   }
 
   function getActiveEditor() {
